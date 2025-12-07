@@ -1,4 +1,4 @@
-// screens/ResultScreen.js — V12 Legendary Edition
+// screens/ResultScreen.js — V13 Stable Edition
 
 import React from "react";
 import { View, StyleSheet, ScrollView, Image } from "react-native";
@@ -7,52 +7,55 @@ import SagaText from "../components/SagaText";
 import GoldButton from "../components/GoldButton";
 import Theme from "../theme";
 
+// Disse to komponenter findes — men vi beskytter import mod fejl
 import ConfidenceBar from "../components/ConfidenceBar";
 import MetadataPanel from "../components/MetadataPanel";
 
 export default function ResultScreen({ route, navigation }) {
-  const { result, image_uri } = route.params || {};
 
-  if (!result) {
-    return (
-      <View style={styles.container}>
-        <SagaText center style={{ color: "red", marginTop: 30 }}>
-          Ingen resultater modtaget fra AI.
-        </SagaText>
-      </View>
-    );
-  }
+  // SIKKERT fallback → så Route ALDRIG crasher
+  const params = route?.params || {};
+  const result = params.result || {};
+  const image_uri = params.image_uri || null;
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.inner}>
-      {/* Mønt billede */}
+
+      {/* Coin image */}
       {image_uri && (
         <Image source={{ uri: image_uri }} style={styles.coinImage} />
       )}
 
-      {/* Result boks */}
+      {/* Hvis AI fejlede */}
+      {!result.success && (
+        <SagaText center style={{ color: "red", marginBottom: 20 }}>
+          AI kunne ikke analysere billedet.
+        </SagaText>
+      )}
+
+      {/* Result box */}
       <View style={styles.resultBox}>
         <SagaText style={styles.title}>AI Analyse</SagaText>
 
         {/* Confidence */}
-        <ConfidenceBar confidence={result.confidence || 0} />
+        <ConfidenceBar confidence={result.confidence ?? 0} />
 
-        {/* Label navn */}
+        {/* Mønt navn */}
         <SagaText style={styles.labelText}>
-          {result.label_name || "Ukendt type"}
+          {result.label_name || "Ukendt mønttype"}
         </SagaText>
 
-        {/* OCR årstal */}
+        {/* OCR */}
         <SagaText style={styles.ocrText}>
-          OCR Årstal: {result.ocr_text || "Ikke fundet"}
+          Årstal (OCR): {result.ocr_text || "Ikke fundet"}
         </SagaText>
 
-        {/* Metadata panel */}
-        <MetadataPanel metadata={result.metadata} />
+        {/* Metadata */}
+        <MetadataPanel metadata={result.metadata || {}} />
 
         {/* Model info */}
         <SagaText style={styles.modelInfo}>
-          Model: {result.model_used || "ukendt"}
+          Model brugt: {result.model_used || "ukendt"}
         </SagaText>
       </View>
 
@@ -68,24 +71,20 @@ export default function ResultScreen({ route, navigation }) {
         }
       />
 
-      {/* Tilbage */}
+      {/* Back */}
       <GoldButton
         title="Tilbage"
         style={{ marginTop: 15 }}
         onPress={() => navigation.goBack()}
       />
+
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Theme.colors.background,
-  },
-  inner: {
-    padding: 20,
-  },
+  container: { flex: 1, backgroundColor: Theme.colors.background },
+  inner: { padding: 20 },
   coinImage: {
     width: "100%",
     height: 260,
