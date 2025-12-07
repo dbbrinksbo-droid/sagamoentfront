@@ -1,0 +1,55 @@
+{
+  "expo": {
+    "name": "SagaMoent",
+    "slug": "sagamoent",
+    "version": "3.0.0",
+    "orientation": "portrait",
+
+    "icon": "./assets/branding/saga-icon.png",
+
+    "splash": {
+      "image": "./assets/branding/saga-splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0B0A09"
+    },
+
+    "assetBundlePatterns": ["**/*"],
+
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "dk.sagamoent.app",
+      "buildNumber": "3",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+
+    "android": {
+      "package": "dk.sagamoent.app",
+      "versionCode": 3,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/branding/saga-icon.png",
+        "backgroundColor": "#0B0A09"
+      }
+    },
+
+    "web": {
+      "favicon": "./assets/branding/saga-icon.png"
+    },
+
+    "plugins": [
+      "expo-asset",
+      "expo-build-properties"
+    ],
+
+    "extra": {
+      "EXPO_PUBLIC_API_URL": "https://coinai-server-production.up.railway.app",
+      "EXPO_PUBLIC_OPENAI_KEY": "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",
+
+      "eas": {
+        "projectId": "28934e95-f8b2-4566-8585-62e336614605"
+      }
+    }
+  }
+}
+
