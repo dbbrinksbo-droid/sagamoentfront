@@ -1,76 +1,51 @@
-// PdfExportScreen.js – SagaMoent PDF Export UI
+// screens/PdfExportScreen.js
 import React, { useState } from "react";
-import { View, StyleSheet, ActivityIndicator } from "react-native";
+import { View, StyleSheet, Alert } from "react-native";
 
-import SagaSection from "../components/SagaSection";
 import GoldButton from "../components/GoldButton";
 import SagaText from "../components/SagaText";
-import Theme from "../theme";
+import RoyalDivider from "../components/RoyalDivider";
 
-import { generateAllPDFs } from "../services/PDFService";
-import * as Sharing from "expo-sharing";
-import * as FileSystem from "expo-file-system";
+import { getAllCoins } from "../services/db/coinStorage";
+import { exportCoinsPDF } from "../services/exportPDF";
 
 export default function PdfExportScreen() {
   const [loading, setLoading] = useState(false);
 
-  async function handleGeneratePDFs() {
+  async function handlePDF() {
     try {
       setLoading(true);
 
-      // Generér alle PDF'er
-      const pdfs = await generateAllPDFs();
-
-      // Lav en samlet mappe (simple metode)
-      const tempFolder = FileSystem.cacheDirectory + "SagaMoentPDFs/";
-      await FileSystem.makeDirectoryAsync(tempFolder, { intermediates: true });
-
-      for (const file of pdfs) {
-        await FileSystem.copyAsync({
-          from: file.path,
-          to: `${tempFolder}cert_${file.id}.pdf`,
-        });
+      const coins = await getAllCoins();
+      if (!coins.length) {
+        Alert.alert("Tom samling", "Der er ingen mønter at eksportere.");
+        setLoading(false);
+        return;
       }
 
-      await Sharing.shareAsync(tempFolder);
+      await exportCoinsPDF(coins, "royal", "share");
 
       setLoading(false);
-    } catch (err) {
+    } catch (e) {
       setLoading(false);
-      alert("Fejl ved PDF eksport.");
+      Alert.alert("Fejl", "Kunne ikke lave PDF.");
     }
   }
 
   return (
     <View style={styles.container}>
-      <SagaSection title="Eksporter PDF Certifikater" />
-
-      <SagaText center variant="body">
-        Der genereres et PDF-certifikat for hver mønt i din samling.
-      </SagaText>
+      <SagaText style={styles.title}>PDF Eksport</SagaText>
+      <RoyalDivider />
 
       <GoldButton
-        title={loading ? "Genererer..." : "Lav alle PDF'er"}
-        onPress={handleGeneratePDFs}
-        style={{ marginTop: 30 }}
+        title={loading ? "Laver PDF..." : "Lav PDF"}
+        onPress={handlePDF}
       />
-
-      {loading && (
-        <ActivityIndicator
-          size="large"
-          color={Theme.colors.gold}
-          style={{ marginTop: 30 }}
-        />
-      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Theme.colors.background,
-    padding: Theme.sizes.paddingLarge,
-  },
+  container: { flex: 1, padding: 20 },
+  title: { fontSize: 26, fontWeight: "700", marginBottom: 20 },
 });
-
