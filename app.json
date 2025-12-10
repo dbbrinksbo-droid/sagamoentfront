@@ -1,2 +1,49 @@
-"EXPO_PUBLIC_API_URL": "https://sagacoinbackend-production.up.railway.app"
-"EXPO_PUBLIC_OPENAI_KEY": "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"
+{
+  "expo": {
+    "name": "SagaMoent",
+    "slug": "sagamoent",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/saga-icon.png",
+    "userInterfaceStyle": "dark",
+
+    "splash": {
+      "image": "./assets/saga-splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#000000"
+    },
+
+    "assetBundlePatterns": ["**/*"],
+
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "dk.sagamoent.app"
+    },
+
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/saga-icon.png",
+        "backgroundColor": "#000000"
+      },
+      "package": "dk.sagamoent.app"
+    },
+
+    "plugins": [
+      "expo-build-properties",
+      "expo-image-picker",
+      "expo-file-system",
+      "expo-sqlite",
+      "expo-print"
+    ],
+
+    "extra": {
+      "EXPO_PUBLIC_API_URL": "https://sagacoinbackend-production.up.railway.app",
+      "EXPO_PUBLIC_OPENAI_KEY": process.env.EXPO_PUBLIC_OPENAI_KEY
+    },
+
+    "runtimeVersion": "1.0.0",
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    }
+  }
+}
