@@ -1,43 +1,117 @@
+// screens/EditCoinScreen.js
 import React, { useState } from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, ScrollView, Alert } from "react-native";
+
 import SagaText from "../components/SagaText";
 import GoldButton from "../components/GoldButton";
 import GoldInput from "../components/GoldInput";
-import { updateCoin } from "../services/CoinsService";
+import RoyalDivider from "../components/RoyalDivider";
+
+import { updateCoin } from "../services/db/coinStorage";
 
 export default function EditCoinScreen({ route, navigation }) {
   const { coin } = route.params;
 
-  const [valueMin, setValueMin] = useState(coin.valueMin?.toString() ?? "");
-  const [valueMax, setValueMax] = useState(coin.valueMax?.toString() ?? "");
-  const [notes, setNotes] = useState(coin.notes ?? "");
+  const [year, setYear] = useState(coin.year || "");
+  const [type, setType] = useState(coin.type || "");
+  const [material, setMaterial] = useState(coin.material || "");
+  const [regent, setRegent] = useState(coin.regent || "");
+  const [condition, setCondition] = useState(coin.condition || "");
+  const [valueDKK, setValueDKK] = useState(coin.valueDKK || "");
+  const [errorType, setErrorType] = useState(coin.errorType || "");
+  const [notes, setNotes] = useState(coin.notes || "");
 
-  async function save() {
-    await updateCoin({
-      id: coin.id,
-      valueMin: parseFloat(valueMin) || 0,
-      valueMax: parseFloat(valueMax) || 0,
-      valueAvg: ((parseFloat(valueMin) || 0) + (parseFloat(valueMax) || 0)) / 2,
-      notes,
-    });
+  const [saving, setSaving] = useState(false);
 
-    navigation.goBack();
+  // ------------------------------------------------------
+  // GEM ÆNDRINGER
+  // ------------------------------------------------------
+  async function handleSave() {
+    try {
+      setSaving(true);
+
+      const updated = {
+        id: coin.id,
+        year,
+        type,
+        material,
+        regent,
+        condition,
+        valueDKK,
+        errorType,
+        notes,
+      };
+
+      await updateCoin(coin.id, updated);
+
+      setSaving(false);
+
+      Alert.alert("Gemt", "Mønten er opdateret.");
+      navigation.goBack();
+    } catch (err) {
+      setSaving(false);
+      Alert.alert("Fejl", "Kunne ikke gemme ændringer.");
+    }
   }
 
   return (
     <View style={styles.container}>
-      <SagaText style={styles.title}>Rediger mønt</SagaText>
+      <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
+        <SagaText style={styles.title}>Rediger Mønt</SagaText>
 
-      <GoldInput placeholder="Minimumværdi" value={valueMin} onChangeText={setValueMin} />
-      <GoldInput placeholder="Maksimumværdi" value={valueMax} onChangeText={setValueMax} />
-      <GoldInput placeholder="Noter" value={notes} onChangeText={setNotes} multiline />
+        <RoyalDivider />
 
-      <GoldButton title="Gem ændringer" onPress={save} style={{ marginTop: 20 }} />
+        {/* FELTER */}
+        <GoldInput label="Årgang" value={year} onChangeText={setYear} />
+        <GoldInput label="Type" value={type} onChangeText={setType} />
+        <GoldInput label="Metal" value={material} onChangeText={setMaterial} />
+        <GoldInput label="Regent" value={regent} onChangeText={setRegent} />
+        <GoldInput label="Stand" value={condition} onChangeText={setCondition} />
+        <GoldInput
+          label="Værdi (DKK)"
+          value={valueDKK}
+          onChangeText={setValueDKK}
+        />
+        <GoldInput
+          label="Fejltype"
+          value={errorType}
+          onChangeText={setErrorType}
+        />
+        <GoldInput
+          label="Noter"
+          value={notes}
+          onChangeText={setNotes}
+          multiline
+          numberOfLines={4}
+        />
+
+        <GoldButton
+          title={saving ? "Gemmer..." : "Gem ændringer"}
+          onPress={handleSave}
+          style={{ marginTop: 20 }}
+        />
+
+        <GoldButton
+          title="Fortryd"
+          onPress={() => navigation.goBack()}
+          style={{ marginTop: 10 }}
+        />
+      </ScrollView>
     </View>
   );
 }
 
+// ------------------------------------------------------
+// STYLE
+// ------------------------------------------------------
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16 },
-  title: { fontSize: 20, marginBottom: 20 },
+  container: {
+    flex: 1,
+    padding: 16,
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: "700",
+    marginBottom: 20,
+  },
 });
