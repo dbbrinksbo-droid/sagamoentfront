@@ -20,17 +20,18 @@ export default function AppNavigator() {
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      {/* Første start */}
+
+      {/* Førstegangsskærm */}
       <Stack.Screen name="Onboarding" component={OnboardingScreen} />
 
-      {/* Hoved appen */}
+      {/* Hovedstacke */}
       <Stack.Screen name="HomeStack" component={HomeStack} />
       <Stack.Screen name="ScanStack" component={ScanStack} />
       <Stack.Screen name="CollectionStack" component={CollectionStack} />
       <Stack.Screen name="SettingsStack" component={SettingsStack} />
       <Stack.Screen name="AiStack" component={AiStack} />
 
-      {/* Paywall */}
+      {/* Paywall fallback hvis noget ikke må åbnes */}
       {!isPro && (
         <Stack.Screen name="Paywall" component={PaywallMainScreen} />
       )}
