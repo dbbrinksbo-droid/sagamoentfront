@@ -1,5 +1,4 @@
-// services/FullCoinAI.js — FIXED FOR EAS BUILD
-
+// services/FullCoinAI.js
 import { API_URL } from "./config";
 
 export async function analyzeFullCoin(frontUri, backUri = null) {
@@ -40,9 +39,8 @@ export async function analyzeFullCoin(frontUri, backUri = null) {
       metadata: json.metadata ?? {},
       model_used: json.model_used ?? "backend",
     };
-
   } catch (err) {
-    console.log("🔥 FullCoinAI FEJL:", err);
+    console.log("🔥 FullCoinAI fejl:", err);
     return {
       success: false,
       error: "AI analyze failed",
@@ -50,5 +48,3 @@ export async function analyzeFullCoin(frontUri, backUri = null) {
     };
   }
 }
-
-
