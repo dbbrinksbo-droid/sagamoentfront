@@ -1,18 +1,18 @@
+// App.js — SagaMoent V12
 import React from "react";
-import { NavigationContainer } from "@react-navigation/native";
+import { StatusBar } from "expo-status-bar";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import RootNavigation from "./navigation/RootNavigation";
-import { ThemeProvider } from "./theme/ThemeService";
-import { ProProvider } from "./services/ProLockService";
+import { ThemeProvider } from "./theme/ThemeService";  // global theme
 
 export default function App() {
   return (
-    <ProProvider>
+    <SafeAreaProvider>
       <ThemeProvider>
-        <NavigationContainer>
-          <RootNavigation />
-        </NavigationContainer>
+        <StatusBar style="light" />
+        <RootNavigation />
       </ThemeProvider>
-    </ProProvider>
+    </SafeAreaProvider>
   );
 }
