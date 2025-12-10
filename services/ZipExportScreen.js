@@ -1,62 +1,44 @@
-// ZipExportScreen.js – SagaMoent ZIP Export UI
-import React, { useState } from "react";
-import { View, StyleSheet, ActivityIndicator } from "react-native";
+import * as FileSystem from "expo-file-system";
+import * as Sharing from "expo-sharing";
+import JSZip from "jszip";
+import { getCollection } from "./CoinsService";
 
-import GoldButton from "../components/GoldButton";
-import SagaText from "../components/SagaText";
-import SagaSection from "../components/SagaSection";
-import Theme from "../theme";
+export async function exportFullZip() {
+  const collection = await getCollection();
+  if (!collection.length) throw new Error("Tom samling");
 
-import { exportFullZip } from "../services/ZipService";
+  const zip = new JSZip();
+  const root = zip.folder("SagaMoentCollection");
 
-export default function ZipExportScreen() {
-  const [loading, setLoading] = useState(false);
+  for (const coin of collection) {
+    const f = root.folder(`coin_${coin.id}`);
+    f.file("profile.json", JSON.stringify(coin, null, 2));
 
-  async function handleZip() {
-    try {
-      setLoading(true);
-      await exportFullZip();
-      setLoading(false);
-      alert("ZIP genereret og klar til deling!");
-    } catch (err) {
-      setLoading(false);
-      alert("Fejl ved ZIP eksport.");
+    if (coin.frontImage) {
+      f.file(
+        "front.jpg",
+        Buffer.from(coin.frontImage, "base64"),
+        { binary: true }
+      );
+    }
+
+    if (coin.backImage) {
+      f.file(
+        "back.jpg",
+        Buffer.from(coin.backImage, "base64"),
+        { binary: true }
+      );
     }
   }
 
-  return (
-    <View style={styles.container}>
-      <SagaSection title="Eksporter ALT (ZIP)" />
+  const zip64 = await zip.generateAsync({ type: "base64" });
+  const zipPath = FileSystem.cacheDirectory + "SagaMoentCollection.zip";
 
-      <SagaText center variant="body">
-        Dette laver en ZIP med:
-        {"\n"}– JSON profiler
-        {"\n"}– Billeder (front/back)
-        {"\n"}– Klar til email, AirDrop, iCloud osv.
-      </SagaText>
+  await FileSystem.writeAsStringAsync(zipPath, zip64, {
+    encoding: FileSystem.EncodingType.Base64,
+  });
 
-      <GoldButton
-        title={loading ? "Genererer..." : "Lav ZIP"}
-        onPress={handleZip}
-        style={{ marginTop: 30 }}
-      />
+  await Sharing.shareAsync(zipPath);
 
-      {loading && (
-        <ActivityIndicator
-          size="large"
-          color={Theme.colors.gold}
-          style={{ marginTop: 30 }}
-        />
-      )}
-    </View>
-  );
+  return zipPath;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Theme.colors.background,
-    padding: Theme.sizes.paddingLarge,
-  },
-});
-
