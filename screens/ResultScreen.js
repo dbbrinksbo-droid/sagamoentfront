@@ -1,126 +1,188 @@
-// screens/ResultScreen.js — V13 Stable Edition
-
-import React from "react";
-import { View, StyleSheet, ScrollView, Image } from "react-native";
-
-import SagaText from "../components/SagaText";
+// screens/ResultScreen.js
+import React, { useState } from "react";
+import { View, Image, StyleSheet, ScrollView, Alert } from "react-native";
 import GoldButton from "../components/GoldButton";
-import Theme from "../theme";
+import SagaText from "../components/SagaText";
+import RoyalCard from "../components/RoyalCard";
+import RoyalDivider from "../components/RoyalDivider";
+import LoadingOverlay from "../components/LoadingOverlay";
 
-// Disse to komponenter findes — men vi beskytter import mod fejl
-import ConfidenceBar from "../components/ConfidenceBar";
-import MetadataPanel from "../components/MetadataPanel";
+import { saveCoin } from "../services/db/coinStorage";
+import { usePro } from "../services/ProLockService";
 
 export default function ResultScreen({ route, navigation }) {
+  const { ai, images } = route.params;
+  const { isPro } = usePro();
 
-  // SIKKERT fallback → så Route ALDRIG crasher
-  const params = route?.params || {};
-  const result = params.result || {};
-  const image_uri = params.image_uri || null;
+  const [saving, setSaving] = useState(false);
+
+  async function handleSave() {
+    setSaving(true);
+
+    try {
+      await saveCoin({
+        frontImage: images.front,
+        backImage: images.back,
+        year: ai.metadata?.year ?? "",
+        type: ai.metadata?.type ?? "",
+        material: ai.metadata?.metal ?? "",
+        regent: ai.metadata?.regent ?? "",
+        condition: ai.metadata?.grade ?? "",
+        valueDKK: ai.metadata?.valueDKK ?? "",
+        errorType: ai.metadata?.error ?? "",
+        notes: "",
+      });
+
+      Alert.alert("Gemt", "Mønten er gemt i din samling.");
+      navigation.navigate("CollectionStack");
+    } catch (err) {
+      console.log("SAVE ERROR:", err);
+      Alert.alert("Fejl", "Kunne ikke gemme mønten.");
+    }
+
+    setSaving(false);
+  }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.inner}>
+    <View style={styles.container}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
+        <SagaText style={styles.title}>AI Analyse Resultat</SagaText>
 
-      {/* Coin image */}
-      {image_uri && (
-        <Image source={{ uri: image_uri }} style={styles.coinImage} />
-      )}
+        {/* Billeder */}
+        <View style={styles.imageRow}>
+          <Image
+            source={{ uri: images.front }}
+            style={styles.preview}
+          />
+          {images.back && (
+            <Image
+              source={{ uri: images.back }}
+              style={styles.preview}
+            />
+          )}
+        </View>
 
-      {/* Hvis AI fejlede */}
-      {!result.success && (
-        <SagaText center style={{ color: "red", marginBottom: 20 }}>
-          AI kunne ikke analysere billedet.
-        </SagaText>
-      )}
+        <RoyalDivider />
 
-      {/* Result box */}
-      <View style={styles.resultBox}>
-        <SagaText style={styles.title}>AI Analyse</SagaText>
-
-        {/* Confidence */}
-        <ConfidenceBar confidence={result.confidence ?? 0} />
-
-        {/* Mønt navn */}
-        <SagaText style={styles.labelText}>
-          {result.label_name || "Ukendt mønttype"}
-        </SagaText>
-
-        {/* OCR */}
-        <SagaText style={styles.ocrText}>
-          Årstal (OCR): {result.ocr_text || "Ikke fundet"}
-        </SagaText>
+        {/* AI Label */}
+        <RoyalCard>
+          <SagaText style={styles.label}>
+            {ai.label_name ?? "Ukendt mønt"}
+          </SagaText>
+          <SagaText style={styles.confidence}>
+            Sikkerhed: {(ai.confidence * 100).toFixed(1)}%
+          </SagaText>
+          <SagaText style={styles.metaSmall}>
+            Model: {ai.model_used ?? "V12"}
+          </SagaText>
+        </RoyalCard>
 
         {/* Metadata */}
-        <MetadataPanel metadata={result.metadata || {}} />
+        <RoyalCard>
+          <SagaText style={styles.metaTitle}>Metadata</SagaText>
 
-        {/* Model info */}
-        <SagaText style={styles.modelInfo}>
-          Model brugt: {result.model_used || "ukendt"}
-        </SagaText>
-      </View>
+          {Object.entries(ai.metadata || {}).map(([key, value]) => (
+            <SagaText key={key} style={styles.metaLine}>
+              • {key}: {value}
+            </SagaText>
+          ))}
 
-      {/* Chat Expert */}
-      <GoldButton
-        title="Spørg mønteksperten"
-        style={{ marginTop: 10 }}
-        onPress={() =>
-          navigation.navigate("ChatAssistant", {
-            ai_metadata: result,
-            image_uri,
-          })
-        }
-      />
+          {ai.ocr_text ? (
+            <SagaText style={styles.metaLine}>• OCR: {ai.ocr_text}</SagaText>
+          ) : null}
+        </RoyalCard>
 
-      {/* Back */}
-      <GoldButton
-        title="Tilbage"
-        style={{ marginTop: 15 }}
-        onPress={() => navigation.goBack()}
-      />
+        <RoyalDivider />
 
-    </ScrollView>
+        {/* ACTION BUTTONS */}
+        <GoldButton
+          title="Gem i samling"
+          onPress={handleSave}
+          style={{ marginBottom: 10 }}
+        />
+
+        {/* PRO Buttons */}
+        <GoldButton
+          title="Korriger data (PRO)"
+          onPress={() =>
+            isPro
+              ? navigation.navigate("CorrectLabels", { ai, images })
+              : navigation.navigate("Paywall")
+          }
+          style={{ marginBottom: 10 }}
+        />
+
+        <GoldButton
+          title="AI Ekspert (PRO)"
+          onPress={() =>
+            isPro
+              ? navigation.navigate("CoinExpert", { ai })
+              : navigation.navigate("Paywall")
+          }
+          style={{ marginBottom: 10 }}
+        />
+
+        <GoldButton
+          title="Eksporter (PRO)"
+          onPress={() =>
+            isPro
+              ? navigation.navigate("SingleExportChoose", { ai, images })
+              : navigation.navigate("Paywall")
+          }
+        />
+      </ScrollView>
+
+      {saving && <LoadingOverlay text="Gemmer..." />}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Theme.colors.background },
-  inner: { padding: 20 },
-  coinImage: {
-    width: "100%",
-    height: 260,
-    borderRadius: 14,
-    marginBottom: 20,
-  },
-  resultBox: {
-    backgroundColor: "#141414",
-    padding: 18,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: Theme.colors.gold,
-    marginBottom: 20,
+  container: {
+    flex: 1,
+    backgroundColor: "#000",
+    padding: 20,
   },
   title: {
+    fontSize: 26,
+    color: "#D4AF37",
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  imageRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginBottom: 20,
+  },
+  preview: {
+    width: 140,
+    height: 140,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: "#D4AF37",
+  },
+  label: {
     fontSize: 22,
-    color: Theme.colors.gold,
-    marginBottom: 14,
-    textAlign: "center",
+    fontWeight: "700",
+    color: "#fff",
+    marginBottom: 4,
   },
-  labelText: {
-    fontSize: 18,
-    color: Theme.colors.gold,
-    textAlign: "center",
-    marginTop: 6,
+  confidence: {
+    fontSize: 16,
+    color: "#D4AF37",
+    marginBottom: 6,
   },
-  ocrText: {
-    opacity: 0.8,
-    textAlign: "center",
-    marginTop: 6,
+  metaTitle: {
+    fontSize: 20,
+    color: "#D4AF37",
+    marginBottom: 10,
   },
-  modelInfo: {
-    textAlign: "center",
-    marginTop: 12,
-    opacity: 0.6,
+  metaLine: {
+    marginBottom: 4,
+    color: "#eee",
+  },
+  metaSmall: {
     fontSize: 12,
+    color: "#999",
   },
 });
-
