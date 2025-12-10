@@ -1,47 +1,41 @@
-// services/GPTExpert.js — V12 Coin Expert Engine
-
+// services/GPTExpert.js
 import { OPENAI_API_KEY } from "./config";
 
-export async function askCoinExpert(metadata) {
-  try {
-    const prompt = `
+export async function askCoinExpert(aiData) {
+  const prompt = `
 Du er SagaMoent AI – en professionel møntekspert.
-Brug KUN disse data fra analysen:
+Analyser disse data:
 
-- Label: ${metadata.label_name}
-- År: ${metadata.year}
-- Land: ${metadata.country}
-- Sikkerhed: ${metadata.confidence}
+• Navn: ${aiData.label_name}
+• Land: ${aiData.metadata?.country ?? "ukendt"}
+• År: ${aiData.metadata?.year ?? "ukendt"}
+• Metal: ${aiData.metadata?.metal ?? "ukendt"}
+• Stand: ${aiData.metadata?.grade ?? "ukendt"}
+• Sikkerhed: ${(aiData.confidence * 100).toFixed(1)}%
 
-Giv et kort, professionelt og præcist svar.
-Ingen forklaringer om GPT-teknologi.
-Ingen "jeg baserer mig på dine oplysninger".
-Ingen undskyldninger.
-Ingen snak om vision-modeller.
-
-Start direkte som ekspert.
+Giv et kort, præcist ekspert-svar.
+Ingen teknologiske forklaringer. Kun ekspertviden.
 `;
 
-    const res = await fetch(
-      "https://api.openai.com/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${OPENAI_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: "gpt-4.1-mini",
-          messages: [{ role: "user", content: prompt }],
-        }),
-      }
-    );
+  try {
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4.1-mini",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.7,
+      }),
+    });
 
     const data = await res.json();
 
-    return data.choices?.[0]?.message?.content || "Ingen respons.";
+    return data.choices?.[0]?.message?.content ?? "Ingen respons.";
   } catch (e) {
-    return "Der opstod en fejl i ekspert-systemet.";
+    console.log("GPTExpert error:", e);
+    return "Der skete en fejl i ekspertsystemet.";
   }
 }
-
