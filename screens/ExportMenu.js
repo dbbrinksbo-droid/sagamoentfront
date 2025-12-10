@@ -1,92 +1,50 @@
-// ExportMenu.js – SagaMoent Export System (Royal Gold Edition)
-
+// screens/ExportMenu.js
 import React from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
-
-import Theme from "../theme";
+import { View, StyleSheet } from "react-native";
 import SagaText from "../components/SagaText";
-import GoldCard from "../components/GoldCard";
 import GoldButton from "../components/GoldButton";
-import SagaSection from "../components/SagaSection";
-import Icons from "../theme/Icons";
+import RoyalDivider from "../components/RoyalDivider";
+import Theme from "../theme/Theme";
 
 export default function ExportMenu({ navigation }) {
   return (
-    <ScrollView style={styles.container}>
-      <SagaSection title="Eksporter Samling" />
+    <View style={styles.container}>
+      <SagaText style={styles.title}>Eksport</SagaText>
 
-      <GoldCard style={styles.card}>
-        <SagaText variant="h2" center>
-          Vælg Eksport Metode
-        </SagaText>
+      <RoyalDivider />
 
-        <SagaText center variant="small" style={{ marginTop: 10, opacity: 0.7 }}>
-          Eksporter dine mønter i forskellige formater
-        </SagaText>
-      </GoldCard>
-
-      {/* 1 — Eksporter ALT */}
       <GoldButton
-        title="Eksporter ALT (ZIP)"
-        icon={Icons.export}
-        style={styles.button}
-        onPress={() => navigation.navigate("ZipExportScreen")}
+        title="Lav PDF"
+        onPress={() => navigation.navigate("PdfExport")}
+        style={styles.btn}
       />
 
-      {/* 2 — Eksporter PDF-certifikater */}
       <GoldButton
-        title="Eksporter PDF Certifikater"
-        icon={Icons.pdf}
-        style={styles.button}
-        onPress={() => navigation.navigate("PdfExportScreen")}
+        title="Lav ZIP"
+        onPress={() => navigation.navigate("ZipExport")}
+        style={styles.btn}
       />
 
-      {/* 3 — Eksporter JSON + billeder (dataset) */}
       <GoldButton
-        title="Eksporter JSON + Billeder (Dataset)"
-        icon={Icons.dataset}
-        style={styles.button}
-        onPress={() => navigation.navigate("DatasetExportScreen")}
+        title="Tilbage"
+        onPress={() => navigation.goBack()}
+        style={styles.btn}
       />
-
-      {/* 4 — Eksporter udvalgt mønt */}
-      <GoldButton
-        title="Eksporter én mønt"
-        icon={Icons.coin}
-        style={styles.button}
-        onPress={() => navigation.navigate("SingleExportChooseScreen")}
-      />
-
-      {/* 5 — Del via systemets share sheet */}
-      <GoldButton
-        title="Del via Email / AirDrop / iCloud"
-        icon={Icons.share}
-        style={styles.button}
-        onPress={() => navigation.navigate("ShareExportScreen")}
-      />
-
-      <View style={{ height: 60 }} />
-    </ScrollView>
+    </View>
   );
 }
 
-// -------------------------------------------------------
-// STYLES
-// -------------------------------------------------------
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Theme.colors.background,
-    padding: Theme.sizes.paddingLarge,
+    padding: 20,
   },
-
-  card: {
+  title: {
+    fontSize: 26,
+    fontWeight: "700",
     marginBottom: 20,
-    paddingVertical: 20,
   },
-
-  button: {
-    marginBottom: 18,
+  btn: {
+    marginBottom: 20,
   },
 });
-
