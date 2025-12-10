@@ -1,25 +1,24 @@
+// screens/ScannerScreen.js
 import React, { useState } from "react";
-import { View, Image, StyleSheet, ScrollView, Alert } from "react-native";
+import { View, Image, StyleSheet, Alert } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 
-import Theme from "../theme";
-import RoyalHeader from "../components/RoyalHeader";
 import GoldButton from "../components/GoldButton";
-import GoldCard from "../components/GoldCard";
 import SagaText from "../components/SagaText";
 import LoadingOverlay from "../components/LoadingOverlay";
 
-// *** KORREKT IMPORT (VIGTIG) ***
-import { analyzeCoinV12 as analyzeCoin } from "../services/ai/CoinAnalyzer";
+import { analyzeFullCoin } from "../services/FullCoinAI";
+import { optimizeImage } from "../utils/imageOptimizer";
 
 export default function ScannerScreen({ navigation }) {
-  const [image, setImage] = useState(null);
+  const [frontImage, setFrontImage] = useState(null);
+  const [backImage, setBackImage] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const takePhoto = async () => {
+  async function takePhoto(side) {
     const perm = await ImagePicker.requestCameraPermissionsAsync();
     if (!perm.granted) {
-      Alert.alert("Ingen adgang", "Kamera-adgang kræves for at scanne.");
+      Alert.alert("Kamera nægtet", "Du skal give adgang til kamera.");
       return;
     }
 
@@ -30,94 +29,111 @@ export default function ScannerScreen({ navigation }) {
 
     if (result.canceled) return;
 
-    setImage(result.assets[0].uri);
-  };
+    const { uri, base64 } = await optimizeImage(result.assets[0].uri);
 
-  const pickFromGallery = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      allowsEditing: false,
-      quality: 0.7,
-    });
+    if (side === "front") setFrontImage({ uri, base64 });
+    else setBackImage({ uri, base64 });
+  }
 
-    if (result.canceled) return;
-    setImage(result.assets[0].uri);
-  };
-
-  const handleAnalyze = async () => {
-    if (!image) {
-      Alert.alert("Ingen billede", "Tag eller vælg et billede først.");
+  async function runAI() {
+    if (!frontImage) {
+      Alert.alert("Manglende billede", "Tag et billede af forsiden først.");
       return;
     }
 
+    setLoading(true);
+
     try {
-      setLoading(true);
+      const ai = await analyzeFullCoin(
+        frontImage.uri,
+        backImage ? backImage.uri : null
+      );
 
-      // KORREKT ANALYSE-FLOW
-      const result = await analyzeCoin(image);
-
-      setLoading(false);
-
-      navigation.navigate("Result", { result });
+      navigation.navigate("Result", {
+        ai,
+        images: {
+          front: frontImage.uri,
+          back: backImage?.uri ?? null,
+        },
+      });
     } catch (err) {
-      setLoading(false);
-      console.log("AI ERR:", err);
-      Alert.alert("Fejl", "Analysen mislykkedes.");
+      Alert.alert("AI-fejl", "Analysering mislykkedes.");
+      console.log("AI error:", err);
     }
-  };
+
+    setLoading(false);
+  }
 
   return (
-    <View style={Theme.container}>
-      <RoyalHeader title="Scanner" />
+    <View style={styles.container}>
+      <SagaText style={styles.title}>SagaMoent Scanner</SagaText>
 
-      <ScrollView contentContainerStyle={styles.content}>
-        <GoldCard>
-          <SagaText style={styles.title}>Scan din mønt</SagaText>
+      <View style={styles.previewRow}>
+        <Image
+          source={
+            frontImage
+              ? { uri: frontImage.uri }
+              : require("../assets/scan.png")
+          }
+          style={styles.preview}
+        />
 
-          <View style={styles.previewBox}>
-            {image ? (
-              <Image source={{ uri: image }} style={styles.preview} />
-            ) : (
-              <SagaText style={styles.placeholder}>Intet billede valgt</SagaText>
-            )}
-          </View>
+        <Image
+          source={
+            backImage
+              ? { uri: backImage.uri }
+              : require("../assets/scan.png")
+          }
+          style={styles.preview}
+        />
+      </View>
 
-          <GoldButton label="Tag Foto" onPress={takePhoto} />
-          <GoldButton label="Vælg fra Galleri" onPress={pickFromGallery} />
-          <GoldButton label="Analyser Mønt" onPress={handleAnalyze} />
-        </GoldCard>
-      </ScrollView>
+      <GoldButton
+        title="Tag forside"
+        onPress={() => takePhoto("front")}
+        style={{ marginBottom: 10 }}
+      />
 
-      <LoadingOverlay visible={loading} text="Analyserer mønt..." />
+      <GoldButton
+        title="Tag bagside (valgfrit)"
+        onPress={() => takePhoto("back")}
+        style={{ marginBottom: 20 }}
+      />
+
+      <GoldButton
+        title="Analyser mønt"
+        onPress={runAI}
+        disabled={!frontImage}
+      />
+
+      {loading && <LoadingOverlay text="Analyserer..." />}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  content: {
-    padding: 20,
+  container: {
+    flex: 1,
+    padding: 22,
+    backgroundColor: "#000",
+    justifyContent: "center",
   },
   title: {
-    fontSize: 22,
-    marginBottom: 15,
+    fontSize: 26,
     textAlign: "center",
-  },
-  previewBox: {
-    width: "100%",
-    height: 250,
-    borderRadius: 12,
-    backgroundColor: "#111",
-    justifyContent: "center",
-    alignItems: "center",
+    color: "#D4AF37",
     marginBottom: 20,
-    overflow: "hidden",
+  },
+  previewRow: {
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+    marginBottom: 30,
   },
   preview: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover",
-  },
-  placeholder: {
-    opacity: 0.4,
+    width: 130,
+    height: 130,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: "#D4AF37",
   },
 });
-
