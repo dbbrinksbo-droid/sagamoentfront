@@ -1,81 +1,74 @@
-// screens/HomeScreen.js — V12 Royal Edition
-
+// screens/HomeScreen.js
 import React from "react";
-import { View, StyleSheet, ScrollView, Image } from "react-native";
+import { View, StyleSheet, Image } from "react-native";
 import SagaText from "../components/SagaText";
 import GoldButton from "../components/GoldButton";
-import Theme from "../theme";
+import Theme from "../theme/Theme";
 
 export default function HomeScreen({ navigation }) {
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ padding: 20 }}>
-
-      <SagaText
-        center
-        size={32}
-        weight="bold"
-        style={{ color: Theme.colors.gold, marginBottom: 20 }}
-      >
-        SagaMoent
-      </SagaText>
+    <View style={styles.container}>
 
       <Image
-        source={require("../assets/branding/saga-icon.png")}
+        source={require("../assets/saga-splash.png")}
         style={styles.logo}
       />
 
-      <View style={{ marginTop: 30 }}>
-        <GoldButton
-          title="🔍 Scan en mønt"
-          onPress={() => navigation.navigate("Scanner")}
-          style={{ marginBottom: 16 }}
-        />
+      <SagaText style={styles.title}>SagaMoent V12</SagaText>
+      <SagaText style={styles.subtitle}>AI • Samling • Eksport</SagaText>
 
-        <GoldButton
-          title="📁 Samling"
-          onPress={() => navigation.navigate("Collection")}
-          style={{ marginBottom: 16 }}
-        />
+      <GoldButton
+        title="Scan Mønt"
+        onPress={() => navigation.navigate("Scanner")}
+        style={styles.btn}
+      />
 
-        <GoldButton
-          title="🧠 AI Træner"
-          onPress={() => navigation.navigate("AiTrainer")}
-          style={{ marginBottom: 16 }}
-        />
+      <GoldButton
+        title="Min Samling"
+        onPress={() => navigation.navigate("Collection")}
+        style={styles.btn}
+      />
 
-        <GoldButton
-          title="🗂 Dataset"
-          onPress={() => navigation.navigate("Dataset")}
-          style={{ marginBottom: 16 }}
-        />
+      <GoldButton
+        title="Eksporter"
+        onPress={() => navigation.navigate("ExportMenu")}
+        style={styles.btn}
+      />
 
-        <GoldButton
-          title="📤 Eksport"
-          onPress={() => navigation.navigate("ExportMenu")}
-          style={{ marginBottom: 16 }}
-        />
+      <GoldButton
+        title="Indstillinger"
+        onPress={() => navigation.navigate("Settings")}
+        style={styles.btn}
+      />
 
-        <GoldButton
-          title="⚙️ Indstillinger"
-          onPress={() => navigation.navigate("Settings")}
-        />
-      </View>
-
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Theme.colors.background,
+    alignItems: "center",
+    paddingTop: 40,
   },
   logo: {
-    width: 120,
-    height: 120,
-    alignSelf: "center",
-    marginTop: 10,
-    opacity: 0.95,
+    width: 160,
+    height: 160,
+    marginBottom: 20,
+    resizeMode: "contain",
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: "700",
+    color: Theme.colors.gold,
+  },
+  subtitle: {
+    fontSize: 16,
+    opacity: 0.7,
+    marginBottom: 30,
+  },
+  btn: {
+    width: 260,
+    marginBottom: 16,
   },
 });
-
