@@ -1,7 +1,5 @@
-// services/config.js
 import Constants from "expo-constants";
 
-// Læs .env eller app.json under "extra"
 const extra = Constants.expoConfig?.extra ?? {};
 
 export const API_URL =
@@ -12,7 +10,4 @@ export const OPENAI_API_KEY =
 
 if (!API_URL) {
   console.warn("⚠️ API_URL mangler! Tilføj EXPO_PUBLIC_API_URL i app.json eller .env");
-}
-if (!OPENAI_API_KEY) {
-  console.warn("⚠️ OPENAI API KEY mangler!");
 }
