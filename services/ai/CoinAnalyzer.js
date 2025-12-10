@@ -1,28 +1,26 @@
-// services/ai/CoinAnalyzer.js — FINAL V12
-
+// services/ai/CoinAnalyzer.js
 import { analyzeFullCoin } from "../FullCoinAI";
 
-export async function analyzeCoinV12(frontUri, backUri = null) {
+export async function analyzeCoinV18(frontUri, backUri = null) {
   try {
-    console.log("🔍 Running FullCoinAI V12…");
+    console.log("🔍 FullCoinAI → Running analysis…");
 
     const result = await analyzeFullCoin(frontUri, backUri);
 
     if (!result.success) {
-      throw new Error(result.error || "Unknown AI error");
+      throw new Error(result.error || "AI-fejl");
     }
 
     return {
-      aiLabel: result.label_name,
-      aiConfidence: result.confidence,
-      ocr: result.ocr_text,
+      label_name: result.label_name,
+      confidence: result.confidence,
+      ocr_text: result.ocr_text,
       metadata: result.metadata,
-      raw: result.raw,
+      model_used: result.model_used,
+      raw: result,
     };
-
   } catch (err) {
-    console.log("❌ CoinAnalyzer V12 error:", err);
+    console.log("❌ CoinAnalyzer error:", err);
     throw err;
   }
 }
-
